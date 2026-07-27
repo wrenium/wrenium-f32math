@@ -1,0 +1,118 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  library-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            cc: gcc
+            cxx: g++
+          - os: ubuntu-latest
+            cc: clang
+            cxx: clang++
+          - os: macos-latest
+            cc: clang
+            cxx: clang++
+          - os: windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cmake -S . -B build
+          else
+            cmake -S . -B build -DCMAKE_C_COMPILER=${{ matrix.cc }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+          fi
+
+      - name: Build tests
+        run: cmake --build build --target tests --config Release
+
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure -C Release -R '^tests$'
+
+  embed-as-dependency:
+    # Verifies that embedding the library via add_subdirectory (the way a
+    # consumer would) never fetches anything beyond the interface target
+    # itself -- no network access needed to just use the library.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: wrenium-f32math
+
+      - name: Create a minimal consumer project
+        run: |
+          mkdir -p consumer
+          cat > consumer/CMakeLists.txt <<'EOF'
+          cmake_minimum_required(VERSION 3.21)
+          project(EmbedTest LANGUAGES CXX)
+          add_subdirectory(../wrenium-f32math wrenium_f32math_build)
+          add_executable(uses_wrenium_f32math main.cpp)
+          target_link_libraries(uses_wrenium_f32math PRIVATE Wrenium::f32math)
+          EOF
+          cat > consumer/main.cpp <<'EOF'
+          #include <wrenium/f32math/f32math.h>
+          int main() { return static_cast<int>(wrenium::f32math::sin(0.0f)); }
+          EOF
+
+      - name: Configure and build (must not require network)
+        run: |
+          cmake -S consumer -B consumer/build
+          cmake --build consumer/build
+
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install clang-format
+        run: pip install --break-system-packages clang-format
+
+      - name: Check formatting
+        run: |
+          files=$(find . -name "*.h" -o -name "*.cpp")
+          clang-format --dry-run --Werror $files
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Doxygen
+        run: sudo apt-get update && sudo apt-get install -y doxygen
+
+      - name: Build API docs (fail on any warning)
+        # docs/api/ is gitignored (generated output) and nothing else lives
+        # under docs/ in this repo, so a fresh checkout has no docs/
+        # directory at all -- Doxygen won't create OUTPUT_DIRECTORY's
+        # missing parent for us.
+        run: mkdir -p docs && doxygen Doxyfile 2>&1 | tee doxygen.log && ! grep -q "warning:" doxygen.log
+
+      - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main'
+        with:
+          path: docs/api/html
+
+  deploy-docs:
+    needs: docs
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
