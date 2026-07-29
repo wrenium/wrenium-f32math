@@ -22,8 +22,11 @@ deliberately; neither is survey-grade or scientific-computing precision.
 
 ## How
 
-Every coefficient here was derived by fitting a short polynomial against
-`<cmath>`'s own `sin`/`cos`/`atan` on a reduced range.
+Every coefficient here was derived by fitting a short polynomial
+against `<cmath>`'s own `sin`/`cos`/`atan` on a reduced range, via
+minimax approximation computed by the Remez exchange algorithm (1934)
+-- each function's "max error" figure above is that fit's guaranteed
+uniform bound.
 
 `sin`/`cos` reduce their argument to the nearest multiple of pi/2 and
 evaluate one of two fitted polynomials depending on quadrant, using
