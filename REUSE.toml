@@ -1,0 +1,19 @@
+version = 1
+SPDX-PackageName = "wrenium-f32math"
+SPDX-PackageSupplier = "Tommi Tauriainen"
+SPDX-PackageDownloadLocation = "https://github.com/wrenium/wrenium-f32math"
+
+# Docs and plain config files where an inline license header would be pure
+# noise relative to their content (e.g. .gitignore).
+[[annotations]]
+path = [
+    "README.md",
+    "SECURITY.md",
+    ".clang-format",
+    ".clang-tidy",
+    ".gitignore",
+    ".github/workflows/ci.yml",
+    "Doxyfile",
+]
+SPDX-FileCopyrightText = "2026 Tommi Tauriainen"
+SPDX-License-Identifier = "MIT"
