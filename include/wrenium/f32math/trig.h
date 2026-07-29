@@ -38,9 +38,19 @@ inline float cosPoly(float s)
 // Range-reduces x to the nearest multiple of pi/2 -- r comes out in
 // dimensionless quarter-turn units (matching sinPoly/cosPoly's own
 // scaling above), q is that quadrant index mod 4.
-inline void reduce(float x, float &r, int &q)
+// r/q are distinct types (float&/int&) that can't actually bind to a
+// swapped call-site argument by accident -- neither is a const reference,
+// so passing a float where an int& is expected (or vice versa) is a hard
+// compile error, not a silent swap.
+inline void reduce(float x, float &r, int &q) // NOLINT(bugprone-easily-swappable-parameters)
 {
     const float t = x * kTrigInvPiO2;
+    // Symmetric round-half-away-from-zero, manually inlined: this is the
+    // single hottest function in the library (called by every sin/cos/
+    // sincos), and lround()/round() would add a real function-call cost
+    // here for no correctness difference over what this already computes
+    // correctly for both signs of t.
+    // NOLINTNEXTLINE(bugprone-incorrect-roundings)
     const float qf = (t >= 0.0f) ? static_cast<float>(static_cast<int>(t + 0.5f)) : static_cast<float>(static_cast<int>(t - 0.5f));
     r = t - qf;
     q = static_cast<int>(qf) & 3;
@@ -89,7 +99,9 @@ inline float cos(float x)
 /// sin(x) and cos(x) together, one range reduction and both polynomials
 /// evaluated once each -- the preferred entry point over calling
 /// sin()/cos() separately whenever both are needed for the same angle.
-inline void sincos(float x, float &s, float &c)
+// (s, c) deliberately matches POSIX/GNU sincos()'s output-argument order --
+// see atan2()'s identical rationale above.
+inline void sincos(float x, float &s, float &c) // NOLINT(bugprone-easily-swappable-parameters)
 {
     float r;
     int q;

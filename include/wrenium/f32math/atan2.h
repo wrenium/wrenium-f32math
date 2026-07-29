@@ -28,7 +28,11 @@ inline float atanPoly(float r)
 } // namespace detail
 
 /// atan2(y, x) -- max error ~6e-4 rad over the full range.
-inline float atan2(float y, float x)
+// (y, x) deliberately matches <cmath>'s std::atan2 argument order -- this
+// function is meant as a drop-in-shaped replacement, so reordering to
+// dodge a swap-risk lint would work against the one thing callers can
+// already rely on without reading this header.
+inline float atan2(float y, float x) // NOLINT(bugprone-easily-swappable-parameters)
 {
     const float ax = (x < 0.0f) ? -x : x;
     const float ay = (y < 0.0f) ? -y : y;

@@ -45,12 +45,19 @@ TEST_CASE("atan2 accuracy is scale-invariant, not just accurate near unit magnit
     // orders of magnitude (both very large and very small) to confirm
     // that scale-invariance claim rather than just assume it from the
     // formula.
+    // Fixed seed and std::rand() are deliberate here: reproducible test
+    // coverage across CI machines/runs is exactly the goal, not
+    // cryptographic randomness -- CERT's concern with predictable seeds
+    // doesn't apply to generating sample test inputs.
+    // NOLINTNEXTLINE(bugprone-random-generator-seed,cert-msc32-c,cert-msc51-cpp)
     std::srand(11);
     float maxErr = 0.0f;
     const float scales[] = {1e-6f, 1e-3f, 1.0f, 1e3f, 1e6f};
     for (float scale : scales) {
         for (int i = 0; i < 2000; ++i) {
+            // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
             const float rx = (static_cast<float>(std::rand()) / RAND_MAX) * 2.0f - 1.0f;
+            // NOLINTNEXTLINE(cert-msc30-c,cert-msc50-cpp)
             const float ry = (static_cast<float>(std::rand()) / RAND_MAX) * 2.0f - 1.0f;
             if (rx == 0.0f && ry == 0.0f) {
                 continue;
