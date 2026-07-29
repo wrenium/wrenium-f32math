@@ -1,5 +1,8 @@
 # wrenium-f32math
 
+[![CI](https://github.com/wrenium/wrenium-f32math/actions/workflows/ci.yml/badge.svg)](https://github.com/wrenium/wrenium-f32math/actions/workflows/ci.yml)
+[![REUSE status](https://api.reuse.software/badge/github.com/wrenium/wrenium-f32math)](https://api.reuse.software/info/github.com/wrenium/wrenium-f32math)
+
 [API documentation](https://wrenium.github.io/wrenium-f32math/)
 
 A C++17 header-only library of float-only math approximations for
@@ -73,6 +76,12 @@ ctest --test-dir build
 
 doxygen Doxyfile   # API reference: docs/api/html/index.html
 ```
+
+## Versioning
+
+Releases follow [Semantic Versioning](https://semver.org/) -- see the
+repository's tags and [releases](https://github.com/wrenium/wrenium-f32math/releases)
+for what changed in each one.
 
 ## License
 
