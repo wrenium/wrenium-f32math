@@ -6,6 +6,7 @@ add_executable(tests
     test_sincos.cpp
     test_atan2.cpp
     test_asin.cpp
+    test_atanh.cpp
 )
 
 target_link_libraries(tests PRIVATE Wrenium::f32math doctest::doctest wrenium_f32math_warnings)

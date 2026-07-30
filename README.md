@@ -6,7 +6,8 @@
 [API documentation](https://wrenium.github.io/wrenium-f32math/)
 
 A C++17 header-only library of float-only math approximations for
-single-precision-FPU embedded targets: `sin`/`cos`/`sincos`/`atan2`/`asin`.
+single-precision-FPU embedded targets: `sin`/`cos`/`sincos`/`atan2`/
+`asin`/`atanh`.
 
 ## Accuracy
 
@@ -15,10 +16,12 @@ single-precision-FPU embedded targets: `sin`/`cos`/`sincos`/`atan2`/`asin`.
 | `sin`/`cos` | ~9e-7 rad |
 | `atan2` | ~6e-4 rad |
 | `asin` | ~6e-4 rad (dominated by `atan2`'s own error) |
+| `atanh` | ~1e-4 over most of its domain, ~1.2e-3 in the last ~2 degrees before the domain edge (`\|x\| <= sin(85.0511 deg)`, not general (-1, 1) -- see `atanh.h`) |
 
 Each figure is checked by the test suite against `<cmath>` over a dense
-sweep, not just asserted. `atan2`/`asin` trade precision for speed
-deliberately; neither is survey-grade or scientific-computing precision.
+sweep, not just asserted. `atan2`/`asin`/`atanh` trade precision for
+speed deliberately; none of them are survey-grade or scientific-computing
+precision.
 
 ## How
 
@@ -37,6 +40,18 @@ circle from a single small-interval fit. `atan2` reduces via the ratio
 rather than its own fit -- `sqrt` is already a single hardware instruction
 under a hard-float ABI, so this costs one `atan2()` call plus one hardware
 `sqrt`, with no extra coefficients to maintain.
+
+`atanh` is the one exception to "polynomial fit on a reduced range": a
+plain polynomial converges far too slowly approaching `atanh`'s true
+singularity at +-1 to be practical, so it's a rational (Padé-style) fit
+instead -- `x * N(v) / D(v)`, restricted to `\|x\| <= sin(85.0511 deg)`
+(the standard "Web Mercator" pole-latitude limit; not a general (-1, 1)
+`atanh`). `N`/`D` are held as Chebyshev coefficients and evaluated via
+Clenshaw's recurrence rather than plain powers of `x` -- a monomial-basis
+fit of the same degree is numerically unstable in `float32` here
+(individual terms reach magnitude ~1-3 that nearly cancel near the
+domain edge, losing most of `float32`'s precision); Chebyshev evaluation
+avoids that by construction.
 
 `sincos()` computes both sin and cos of the same angle from one shared
 range reduction -- prefer it over calling `sin()` then `cos()` separately
