@@ -7,7 +7,17 @@
 
 A C++17 header-only library of float-only math approximations for
 single-precision-FPU embedded targets: `sin`/`cos`/`sincos`/`atan2`/
-`asin`/`atanh`.
+`asin`/`atanh`/`tanh`.
+
+This library has been created for [wrenium-geo](https://github.com/wrenium/wrenium-geo),
+to replace `<cmath>` with faster approximations for its constrained (MCU)
+targets -- `atanh`/`tanh`'s bounded domains in particular are derived
+directly from what wrenium-geo's inverse Web Mercator projection needs,
+which is why their own comments and tests reference pole-latitude
+limits and composing with `asin()`. There's no actual dependency on
+wrenium-geo anywhere in this repo, though, and the same functions fit
+just as well in any other project willing to trade some precision for
+speed (see Accuracy below).
 
 ## Accuracy
 
@@ -17,6 +27,7 @@ single-precision-FPU embedded targets: `sin`/`cos`/`sincos`/`atan2`/
 | `atan2` | ~6e-4 rad |
 | `asin` | ~6e-4 rad (dominated by `atan2`'s own error) |
 | `atanh` | ~1e-4 over most of its domain, ~1.2e-3 in the last ~2 degrees before the domain edge (`\|x\| <= sin(85.0511 deg)`, not general (-1, 1) -- see `atanh.h`) |
+| `tanh` | ~1e-3 over its fitted domain (`\|x\| <= pi`, not general (-inf, inf) -- see `tanh.h`) |
 
 Each figure is checked by the test suite against `<cmath>` over a dense
 sweep, not just asserted. `atan2`/`asin`/`atanh` trade precision for
@@ -52,6 +63,13 @@ fit of the same degree is numerically unstable in `float32` here
 (individual terms reach magnitude ~1-3 that nearly cancel near the
 domain edge, losing most of `float32`'s precision); Chebyshev evaluation
 avoids that by construction.
+
+`tanh`, unlike `atanh`, has no singularity anywhere, so a plain polynomial
+fit (mirroring `sin`/`cos`/`atan2`'s own construction, not `atanh`'s
+rational one) converges cleanly -- restricted to `\|x\| <= pi`, the only
+domain an inverse Web Mercator projection actually needs it for (`y ==
+pi` is exactly the standard pole-latitude limit above), not a general
+`(-inf, inf)` `tanh`.
 
 `sincos()` computes both sin and cos of the same angle from one shared
 range reduction -- prefer it over calling `sin()` then `cos()` separately
