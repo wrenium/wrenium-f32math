@@ -41,7 +41,7 @@ constexpr float kTanhC7 = -0.000000558867743f;
 
 /// tanh(x) -- max error ~4e-4 over the fitted domain (see tests/test_tanh.cpp).
 /// @p x must be in [-pi, pi]; behavior outside that range is not defined.
-inline float tanh(float x)
+constexpr float tanh(float x)
 {
     const float u = x * x;
     const float p = detail::kTanhC0 + u * (detail::kTanhC1 + u * (detail::kTanhC2 + u * (detail::kTanhC3 + u * (detail::kTanhC4 + u * (detail::kTanhC5 + u * (detail::kTanhC6 + u * detail::kTanhC7))))));

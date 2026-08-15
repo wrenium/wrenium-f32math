@@ -25,12 +25,12 @@ constexpr float kCos2 = -1.2336952317352528f;
 constexpr float kCos4 = 0.25357698228453524f;
 constexpr float kCos6 = -0.020350594550262963f;
 
-inline float sinPoly(float r, float s)
+constexpr float sinPoly(float r, float s)
 {
     return r * (kSin1 + s * (kSin3 + s * kSin5));
 }
 
-inline float cosPoly(float s)
+constexpr float cosPoly(float s)
 {
     return 1.0f + s * (kCos2 + s * (kCos4 + s * kCos6));
 }
@@ -42,7 +42,7 @@ inline float cosPoly(float s)
 // swapped call-site argument by accident -- neither is a const reference,
 // so passing a float where an int& is expected (or vice versa) is a hard
 // compile error, not a silent swap.
-inline void reduce(float x, float &r, int &q) // NOLINT(bugprone-easily-swappable-parameters)
+constexpr void reduce(float x, float &r, int &q) // NOLINT(bugprone-easily-swappable-parameters)
 {
     const float t = x * kTrigInvPiO2;
     // Symmetric round-half-away-from-zero, manually inlined: this is the
@@ -67,10 +67,10 @@ inline void reduce(float x, float &r, int &q) // NOLINT(bugprone-easily-swappabl
 /// instead when both sin and cos of the same angle are needed (that
 /// shares one range reduction between both, cheaper than two independent
 /// sin()/cos() calls).
-inline float sin(float x)
+constexpr float sin(float x)
 {
-    float r;
-    int q;
+    float r = 0.0f;
+    int q = 0;
     detail::reduce(x, r, q);
     const float s = r * r;
     if (q & 1) {
@@ -82,10 +82,10 @@ inline float sin(float x)
 }
 
 /// cos(x) -- see sin()'s own doc comment; prefer sincos() if both are needed.
-inline float cos(float x)
+constexpr float cos(float x)
 {
-    float r;
-    int q;
+    float r = 0.0f;
+    int q = 0;
     detail::reduce(x, r, q);
     const float s = r * r;
     if (q & 1) {
@@ -101,10 +101,10 @@ inline float cos(float x)
 /// sin()/cos() separately whenever both are needed for the same angle.
 // (s, c) deliberately matches POSIX/GNU sincos()'s output-argument order --
 // see atan2()'s identical rationale above.
-inline void sincos(float x, float &s, float &c) // NOLINT(bugprone-easily-swappable-parameters)
+constexpr void sincos(float x, float &s, float &c) // NOLINT(bugprone-easily-swappable-parameters)
 {
-    float r;
-    int q;
+    float r = 0.0f;
+    int q = 0;
     detail::reduce(x, r, q);
     const float sq = r * r;
     const float sv = detail::sinPoly(r, sq);

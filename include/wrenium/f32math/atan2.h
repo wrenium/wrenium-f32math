@@ -20,7 +20,7 @@ constexpr float kAtan1 = 0.99535796f;
 constexpr float kAtan3 = -0.28869024f;
 constexpr float kAtan5 = 0.07933903f;
 
-inline float atanPoly(float r)
+constexpr float atanPoly(float r)
 {
     return r * (kAtan1 + r * r * (kAtan3 + r * r * kAtan5));
 }
@@ -32,7 +32,7 @@ inline float atanPoly(float r)
 // function is meant as a drop-in-shaped replacement, so reordering to
 // dodge a swap-risk lint would work against the one thing callers can
 // already rely on without reading this header.
-inline float atan2(float y, float x) // NOLINT(bugprone-easily-swappable-parameters)
+constexpr float atan2(float y, float x) // NOLINT(bugprone-easily-swappable-parameters)
 {
     const float ax = (x < 0.0f) ? -x : x;
     const float ay = (y < 0.0f) ? -y : y;
