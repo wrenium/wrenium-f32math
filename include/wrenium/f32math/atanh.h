@@ -42,7 +42,7 @@ constexpr float kAtanhD4 = 0.003021052862125718f;
 /// last degree before the limit (|x| approaching ~0.996, i.e. |lat|
 /// approaching 85 deg -- see this file's own top comment). @p x must be
 /// in [-0.99627, 0.99627]; behavior outside that range is not defined.
-inline float atanh(float x)
+constexpr float atanh(float x)
 {
     const float u = x * x;
     const float v = 2.0f * (u / detail::kAtanhUMax) - 1.0f;
