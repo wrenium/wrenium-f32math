@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 3.21)
 
 project(wrenium-f32math
-    VERSION 0.3.1
+    VERSION 0.4.0
     DESCRIPTION "Header-only, float-only math approximations for single-precision-FPU embedded targets"
     LANGUAGES CXX
 )
