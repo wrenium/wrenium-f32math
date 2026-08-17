@@ -7,7 +7,7 @@
 
 A C++17 header-only library of float-only math approximations for
 single-precision-FPU embedded targets: `sin`/`cos`/`sincos`/`atan2`/
-`asin`/`atanh`/`tanh`.
+`asin`/`atanh`/`tanh`/`log`/`exp`.
 
 This library has been created for [wrenium-geo](https://github.com/wrenium/wrenium-geo),
 to replace `<cmath>` with faster approximations for its constrained (MCU)
@@ -28,6 +28,8 @@ speed (see Accuracy below).
 | `asin` | ~6e-4 rad (dominated by `atan2`'s own error) |
 | `atanh` | ~1e-4 over most of its domain, ~1.2e-3 in the last ~2 degrees before the domain edge (`\|x\| <= sin(85.0511 deg)`, not general (-1, 1) -- see `atanh.h`) |
 | `tanh` | ~1e-3 over its fitted domain (`\|x\| <= pi`, not general (-inf, inf) -- see `tanh.h`) |
+| `log` | ~2e-4 over the full positive `float32` range (dominated by `atanh`'s own error -- see `log.h`) |
+| `exp` | ~2e-7 relative, over `x` in `[-85, 85]` (clamped outside that -- see `exp.h`) |
 
 Each figure is checked by the test suite against `<cmath>` over a dense
 sweep, not just asserted. `atan2`/`asin`/`atanh` trade precision for
@@ -75,6 +77,21 @@ pi` is exactly the standard pole-latitude limit above), not a general
 range reduction -- prefer it over calling `sin()` then `cos()` separately
 whenever both are needed for the same angle (the common case), which
 redoes the reduction and half the polynomial work for nothing.
+
+`log` reuses `atanh` rather than its own fit: `ln(m) == 2*atanh((m-1)/(m+1))`
+is an exact identity, and splitting the input into `m * 2^e` (the standard
+IEEE-754 range reduction, `m` in `[sqrt(2)/2, sqrt(2))`) keeps that ratio
+within +-0.17 -- close enough to the middle of `atanh`'s own fitted domain
+that its existing coefficients cover this at a tighter error than
+`atanh`'s own worst case, with nothing new to fit.
+
+`exp` reduces via `x = k*ln(2) + r` (`r` in `[-ln(2)/2, ln(2)/2]`), the
+same reduce-then-fit shape `sin`/`cos` use for their own quadrant
+reduction, then composes a fitted polynomial on `r` with `2^k` built
+directly from `r`'s own IEEE-754 exponent bits rather than a multiplication
+loop. `ln(2)` is split into a high/low pair so the reduction itself stays
+exact for every `k` this needs, rather than dominating the polynomial's
+own tighter error at large `x`.
 
 ## Trading speed for accuracy
 

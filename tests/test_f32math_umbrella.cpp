@@ -24,4 +24,6 @@ TEST_CASE("f32math.h pulls in every function this library provides")
     (void)f32math::asin(0.5f);
     (void)f32math::atanh(0.5f);
     (void)f32math::tanh(0.5f);
+    (void)f32math::log(0.5f);
+    (void)f32math::exp(0.5f);
 }

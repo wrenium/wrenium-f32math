@@ -8,6 +8,8 @@ set(WRENIUM_F32MATH_TEST_SOURCES
     test_asin.cpp
     test_atanh.cpp
     test_tanh.cpp
+    test_log.cpp
+    test_exp.cpp
     test_f32math_umbrella.cpp
 )
 
