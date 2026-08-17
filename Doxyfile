@@ -3,7 +3,7 @@
 # Generate with: doxygen Doxyfile (output: docs/api/html/index.html)
 
 PROJECT_NAME           = "wrenium-f32math"
-PROJECT_NUMBER         = 0.3.1
+PROJECT_NUMBER         = 0.4.0
 PROJECT_BRIEF          = "Header-only, float-only math approximations for single-precision-FPU embedded targets"
 OUTPUT_DIRECTORY       = docs/api
 

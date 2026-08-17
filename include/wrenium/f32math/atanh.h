@@ -3,6 +3,10 @@
 
 #pragma once
 
+#ifdef WRENIUM_F32MATH_USE_STD
+#include <cmath>
+#endif
+
 /// @file
 /// atanh minimax rational approximation, restricted to |x| <=
 /// sin(85.0511 deg) (~0.99627) -- the standard "Web Mercator" pole-
@@ -11,6 +15,10 @@
 /// slowly approaching atanh's true singularity at +-1 to be practical,
 /// so this is a rational (Padé-style) fit instead, restricted to the one
 /// bounded domain this library actually needs it for.
+///
+/// See trig.h's own top comment for what WRENIUM_F32MATH_USE_STD does
+/// (swaps every function in this library for the real `<cmath>`
+/// implementation) and its one real cost (drops `constexpr`).
 
 namespace wrenium::f32math {
 
@@ -38,6 +46,20 @@ constexpr float kAtanhD4 = 0.003021052862125718f;
 
 } // namespace detail
 
+#ifdef WRENIUM_F32MATH_USE_STD
+
+/// atanh(x) -- see trig.h's own top comment for what
+/// WRENIUM_F32MATH_USE_STD does and costs. @p x must be in
+/// [-0.99627, 0.99627]; behavior outside that range is not defined (same
+/// contract as the default build's own fit, even though std::atanh
+/// itself is defined on the wider (-1, 1)).
+inline float atanh(float x)
+{
+    return std::atanh(x);
+}
+
+#else
+
 /// atanh(x) -- max error ~1e-4 over most of the domain, ~1.2e-3 in the
 /// last degree before the limit (|x| approaching ~0.996, i.e. |lat|
 /// approaching 85 deg -- see this file's own top comment). @p x must be
@@ -60,5 +82,7 @@ constexpr float atanh(float x)
 
     return x * n / d;
 }
+
+#endif // WRENIUM_F32MATH_USE_STD
 
 } // namespace wrenium::f32math
