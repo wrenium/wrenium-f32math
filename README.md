@@ -76,6 +76,17 @@ range reduction -- prefer it over calling `sin()` then `cos()` separately
 whenever both are needed for the same angle (the common case), which
 redoes the reduction and half the polynomial work for nothing.
 
+## Trading speed for accuracy
+
+Define `WRENIUM_F32MATH_USE_STD` project-wide and every function here
+calls the real `<cmath>` implementation instead of its own
+approximation -- still float32 in and out, no source changes needed
+anywhere that already calls these by name.
+
+Two costs: `sincos()` becomes two independent `<cmath>` calls instead of
+one shared range reduction, and every function loses `constexpr` (`std`'s
+own trig isn't usable in a constant expression until C++23).
+
 ## Using the library
 
 Header-only. Either add `include/` to your own include path directly, or

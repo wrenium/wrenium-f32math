@@ -17,7 +17,9 @@ namespace wrenium::f32math {
 /// polynomial fit: sqrt is already a single hardware instruction under a
 /// hard-float ABI, so this costs one atan2() call plus one hardware sqrt,
 /// with no separate coefficient set to maintain. Max error ~6e-4 rad
-/// (dominated by atan2()'s own error). @p x must be in [-1, 1].
+/// (dominated by atan2()'s own error) -- and inherits
+/// WRENIUM_F32MATH_USE_STD (trig.h's own top comment) automatically for
+/// the same reason, with no change needed here. @p x must be in [-1, 1].
 inline float asin(float x)
 {
     return atan2(x, std::sqrt(1.0f - x * x));

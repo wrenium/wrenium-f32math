@@ -35,10 +35,10 @@ jobs:
           fi
 
       - name: Build tests
-        run: cmake --build build --target tests --config Release
+        run: cmake --build build --target tests tests_use_std --config Release
 
       - name: Run tests
-        run: ctest --test-dir build --output-on-failure -C Release -R '^tests$'
+        run: ctest --test-dir build --output-on-failure -C Release -R '^tests$|^tests_use_std$'
 
   sanitizers:
     # ASan+UBSan on the test suite -- catches memory-safety/UB bugs the

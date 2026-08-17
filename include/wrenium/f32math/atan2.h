@@ -3,9 +3,17 @@
 
 #pragma once
 
+#ifdef WRENIUM_F32MATH_USE_STD
+#include <cmath>
+#endif
+
 /// @file
 /// atan2 minimax polynomial approximation -- max error ~6e-4 rad over the
 /// full range. tests/test_atan2.cpp checks the resulting max error.
+///
+/// See trig.h's own top comment for what WRENIUM_F32MATH_USE_STD does
+/// (swaps every function in this library for the real `<cmath>`
+/// implementation) and its one real cost (drops `constexpr`).
 
 namespace wrenium::f32math {
 
@@ -26,6 +34,21 @@ constexpr float atanPoly(float r)
 }
 
 } // namespace detail
+
+#ifdef WRENIUM_F32MATH_USE_STD
+
+/// atan2(y, x) -- see trig.h's own top comment for what
+/// WRENIUM_F32MATH_USE_STD does and costs.
+// (y, x) deliberately matches <cmath>'s std::atan2 argument order -- this
+// function is meant as a drop-in-shaped replacement, so reordering to
+// dodge a swap-risk lint would work against the one thing callers can
+// already rely on without reading this header.
+inline float atan2(float y, float x) // NOLINT(bugprone-easily-swappable-parameters)
+{
+    return std::atan2(y, x);
+}
+
+#else
 
 /// atan2(y, x) -- max error ~6e-4 rad over the full range.
 // (y, x) deliberately matches <cmath>'s std::atan2 argument order -- this
@@ -50,5 +73,7 @@ constexpr float atan2(float y, float x) // NOLINT(bugprone-easily-swappable-para
     }
     return res;
 }
+
+#endif // WRENIUM_F32MATH_USE_STD
 
 } // namespace wrenium::f32math

@@ -3,10 +3,27 @@
 
 #pragma once
 
+#ifdef WRENIUM_F32MATH_USE_STD
+#include <cmath>
+#endif
+
 /// @file
 /// sin/cos minimax polynomial approximations -- max error ~9e-7 over the
 /// full angular range. tests/test_sincos.cpp checks the resulting max
 /// error.
+///
+/// Define WRENIUM_F32MATH_USE_STD project-wide to have every function in
+/// this library call the real `<cmath>` implementation instead -- still
+/// float32 in and out, just accurate rather than approximated. See this
+/// repository's own README ("Trading speed for accuracy") for when that
+/// trade is worth making, and its one real cost: these functions are
+/// `constexpr` in the default build, but `std::sin`/`cos` aren't
+/// constant-expression-usable until C++23, so WRENIUM_F32MATH_USE_STD
+/// drops that qualifier -- any caller relying on compile-time evaluation
+/// (wrenium-geo's own constexpr SVG generation, for example) won't build
+/// with this defined. That's a real, portable compile error on every
+/// compiler, deliberately -- not left to GCC's own non-standard constexpr
+/// extension for `<cmath>`, which Clang doesn't share.
 
 namespace wrenium::f32math {
 
@@ -60,6 +77,34 @@ constexpr void reduce(float x, float &r, int &q) // NOLINT(bugprone-easily-swapp
 }
 
 } // namespace detail
+
+#ifdef WRENIUM_F32MATH_USE_STD
+
+/// sin(x) -- see this file's own top comment for what
+/// WRENIUM_F32MATH_USE_STD does and costs.
+inline float sin(float x)
+{
+    return std::sin(x);
+}
+
+/// cos(x) -- see sin()'s own doc comment.
+inline float cos(float x)
+{
+    return std::cos(x);
+}
+
+/// sin(x) and cos(x) together -- two independent std calls in this build
+/// (there's no portable, standard combined sin+cos), not one shared range
+/// reduction the way the default build's own sincos() gets.
+// (s, c) deliberately matches POSIX/GNU sincos()'s output-argument order --
+// see atan2()'s identical rationale above.
+inline void sincos(float x, float &s, float &c) // NOLINT(bugprone-easily-swappable-parameters)
+{
+    s = std::sin(x);
+    c = std::cos(x);
+}
+
+#else
 
 /// sin(x) -- max error ~9e-7 over the full angular range. Branches on
 /// quadrant parity before evaluating either polynomial, so a standalone
@@ -128,5 +173,7 @@ constexpr void sincos(float x, float &s, float &c) // NOLINT(bugprone-easily-swa
         break;
     }
 }
+
+#endif // WRENIUM_F32MATH_USE_STD
 
 } // namespace wrenium::f32math
